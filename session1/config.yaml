@@ -1,0 +1,7 @@
+WORKING_FOLDER: "./"
+
+REF: "hg38.fa"
+
+GATK_PARAMS:
+  P1: "4"
+  P2: "3"

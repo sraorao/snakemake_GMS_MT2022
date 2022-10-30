@@ -1,0 +1,61 @@
+# configfile: ""
+# workdir: "/home/srao/OneDrive/work/teaching/snakemake_GMS_MT2021/session1"
+
+
+# 1 --------------------------------------------------------------------------------------------------------------------
+rule count_words:
+    """Simple rule.
+    Takes a text file as input, and outputs another text file.
+    """
+    input: "data/reduplication_poetry.txt"
+    output: "output/word_count.txt"
+    shell: "cat {input} | grep -oE '([A-Za-z])+' | sort | uniq -c > {output}"
+
+# 2 --------------------------------------------------------------------------------------------------------------------
+rule count_reduplicated_words:
+    """Takes a text file as input, and outputs another text file.
+    Note the double backslashes.
+    """
+    input: "data/reduplication_poetry.txt"
+    output: "output/redup_count.txt"
+    shell:
+        """
+        cat {input} | \
+        tr [:upper:] [:lower:] | \
+        grep -oE '\\b([A-Za-z].*)[ -]*\\1\\b' | \
+        sort | \
+        uniq -c | \
+        sed -e 's/^\s*//' -e 's/\s/\t/' > {output}
+        """
+# 3 --------------------------------------------------------------------------------------------------------------------
+rule count_lines:
+    """Takes a text file as input, and outputs another text file.
+    Uses non-file parameters using params keyword.
+    """
+    input: "data/reduplication_poetry.txt"
+    output: "output/line_count.txt"
+    params: "'.*'"
+    shell:
+        """
+        cat {input} | \
+        tr [:upper:] [:lower:] | \
+        grep -oE {params} | \
+        sort | \
+        uniq -c > {output}
+        """
+# 4 --------------------------------------------------------------------------------------------------------------------
+rule plot_counts:
+    """plot the results from rule 2 using an R script 
+    (Assumes that you have R set up for pdf plotting).
+    """
+    input: "output/redup_count.txt"
+    output: "output/counts_plot.pdf"
+    script: "scripts/plot_counts.R"
+
+# 5 --------------------------------------------------------------------------------------------------------------------
+rule generate_data_files:
+    """generate data files for wildcards workflow."""
+    # input: "Snakefile" # dummy input
+    output: expand("data_wildcards/snakemake_input_{num}.txt", num = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    params: "sample no. "
+    shell: "for each in {output}; do echo {params} > $each; done"

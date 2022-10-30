@@ -1,0 +1,5 @@
+session1/.snakemake
+session2/.snakemake
+session2/cluster_logs
+.snakemake/
+.idea/

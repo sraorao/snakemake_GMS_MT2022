@@ -1,0 +1,16 @@
+__resources__:
+  hostname: "'compe*'"
+#  gpu: 
+#    - "gpu"
+#    - "nvidia_gpu"
+
+__default__:
+  join: yes
+  output: cluster_logs/
+  name: "default_job"
+  queue: "test.qc"
+  project: "hamdy.prjc"
+  cwd: ""
+  # export_env: "" # commented out on 5 Nov 2020 - RAO
+  pe: "shmem 1" 
+

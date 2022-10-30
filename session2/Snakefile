@@ -1,0 +1,71 @@
+"""
+Workflow to plot dupmetrics from 8 bam files
+inputs: bam files in folder named bam/
+outputs:
+    dup marked bam files: sorted, duplicate marked bam file for each sample
+    plot: a bar plot of percentage duplication for all samples
+"""
+configfile: "config.yaml"
+
+import pandas
+from snakemake.utils import min_version
+min_version("5.26")
+
+samples_df = pandas.read_csv(config["SAMPLE_IDS"])
+TUMOURS = samples_df.tumour
+NORMALS = samples_df.normal
+ALL_SAMPLES = set(list(TUMOURS) + list(NORMALS))
+
+# print(ALL_SAMPLES)
+onsuccess: print("finished successfully") # insert more useful code here, e.g. send email to yourself
+onerror: print("finished with errors") # insert more useful code here, e.g. send email to yourself
+
+rule all:
+    input:
+        normal_vs_tumour = expand("output/paired/{normal}.txt", normal = NORMALS),
+        plot = "output/plots/dups.pdf",
+        python_plot = "output/plots/dups_python.pdf"
+
+#-----------------------------------------------------------------------------------------------------------------------
+def get_tumours_for_normal(wildcards):
+    """
+    Returns all the tumour samples for a given normal sample
+    """
+    tumours_for_normal = TUMOURS[NORMALS == wildcards.normal]
+    return [f"data/bam/{tumour}.bam" for tumour in tumours_for_normal]
+#-----------------------------------------------------------------------------------------------------------------------
+
+rule mark_dups:
+    input: "data/bam/{sample}.bam"
+    output:
+        bam = "data/dupmarked_bam/{sample}_dupmarked.bam",
+        metrics = "data/dupmarked_bam/{sample}_dupmetrics.txt"
+    conda: "envs/gatk.yaml"
+    envmodules: "GATK/4.1.7.0-GCCcore-8.3.0-Java-11"
+    threads: 1
+    shell: "which gatk && gatk MarkDuplicates -I {input} -O {output.bam} -M {output.metrics}"
+
+rule demonstrate_input_function:
+    input: 
+        normal = "data/bam/{normal}.bam",
+        tumours = get_tumours_for_normal
+    output:
+        normal_vs_tumours = "output/paired/{normal}.txt"
+    conda: "envs/samtools.yaml"
+    shell:
+        """
+        echo {input.normal} vs {input.tumours} > {output.normal_vs_tumours}
+        """
+
+rule plot_dupmetrics:
+    input: expand("data/dupmarked_bam/{sample}_dupmetrics.txt", sample = ALL_SAMPLES)
+    output: "output/plots/dups.pdf"
+    conda: "envs/r.yaml"
+    envmodules: "R/default"
+    script: "scripts/plot.R"
+
+rule plot_dupmetrics_python:
+    input: expand("data/dupmarked_bam/{sample}_dupmetrics.txt", sample = ALL_SAMPLES)
+    output: "output/plots/dups_python.pdf"
+    conda: "envs/python.yaml"
+    script: "scripts/plot.py"
