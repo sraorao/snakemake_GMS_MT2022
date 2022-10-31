@@ -1,9 +1,3 @@
-# Note: I have tested the cluster profile mentioned below with Snakemake 6.1.0; A [recent change in Snakemake](https://github.com/snakemake/snakemake/commit/198e0e2c9d7aec0a983ad59e889164c852b2d0fc#diff-ebf1ef342aa8393b3ccf93af276e92861d2d3a13e621f76b260e1f01c67b2907) seems to be submitting the option tmpdir=/tmp as a default parameter to qsub which the BMRC SGE doesn't seem to like. So for now, the solution is to install an older version of Snakemake, like so:
-```
-conda install mamba
-mamba install -c bioconda snakemake=6.1.0
-```
-
 # Session II
 (Please read [Intro to snakemake](https://github.com/sraorao/snakemake_cc_2021/tree/main/session1) to become familiar with 
 Snakemake first.)
